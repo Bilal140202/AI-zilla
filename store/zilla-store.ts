@@ -20,6 +20,13 @@ type ZillaState = {
 export const useZillaStore = create<ZillaState>((set) => ({
   agents: [
     {
+      id: "local",
+      label: "Local WebLLM",
+      tag: "@local",
+      status: "Ready",
+      description: "Free in-browser text model that runs without provider keys."
+    },
+    {
       id: "openrouter",
       label: "OpenRouter Core",
       tag: "@openrouter",
@@ -42,8 +49,8 @@ export const useZillaStore = create<ZillaState>((set) => ({
     }
   ],
   prompts: [
+    "@local turn my rough app idea into a complete build prompt",
     "@openrouter audit this launch plan and list the highest-risk assumptions",
-    "@nyok convert this idea into a technical architecture and milestones",
     "@pollinations-img product dashboard with agent routing and workflow lanes"
   ],
   recent: [],
