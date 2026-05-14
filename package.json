@@ -9,7 +9,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@huggingface/transformers": "^3.8.0",
     "@mlc-ai/web-llm": "^0.2.83",
     "lucide-react": "^0.511.0",
     "next": "^15.3.2",

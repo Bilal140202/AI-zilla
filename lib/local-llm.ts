@@ -1,7 +1,6 @@
 "use client";
 
 export const DEFAULT_LOCAL_MODEL = "Llama-3.2-1B-Instruct-q4f32_1-MLC";
-export const DEFAULT_CPU_MODEL = "Xenova/LaMini-Flan-T5-77M";
 
 type Engine = {
   chat: {
@@ -24,9 +23,6 @@ type Engine = {
 
 let enginePromise: Promise<Engine> | null = null;
 let loadedModel = "";
-let cpuPipelinePromise: Promise<{
-  (input: string, options: { max_new_tokens: number; temperature: number }): Promise<Array<{ generated_text?: string }> | { generated_text?: string }>;
-}> | null = null;
 
 export type LocalLlmStatus = {
   text: string;
@@ -61,15 +57,6 @@ Write a complete prompt that tells an AI builder exactly what to create.
 \`\`\``;
 }
 
-function buildCpuPrompt(command: string) {
-  return `${buildLocalSystemPrompt()}
-
-User request:
-${command}
-
-Write the final answer now.`;
-}
-
 export function preloadLocalLlm(
   onStatus: (status: LocalLlmStatus) => void,
   model = DEFAULT_LOCAL_MODEL
@@ -85,18 +72,27 @@ export function preloadLocalLlm(
   }).gpu;
 
   if (!gpu) {
-    preloadCpuLlm(onStatus);
+    onStatus({
+      text: "WebGPU unavailable; use OpenRouter or enable WebGPU for local AI",
+      ready: false
+    });
     return null;
   }
 
   if (typeof gpu.requestAdapter !== "function") {
-    preloadCpuLlm(onStatus);
+    onStatus({
+      text: "WebGPU adapter unavailable; use OpenRouter for AI output",
+      ready: false
+    });
     return null;
   }
 
   void gpu.requestAdapter().then((adapter) => {
     if (!adapter) {
-      preloadCpuLlm(onStatus);
+      onStatus({
+        text: "No compatible GPU found; local AI disabled",
+        ready: false
+      });
     }
   });
 
@@ -127,74 +123,13 @@ export function preloadLocalLlm(
     })
     .catch((error) => {
       onStatus({
-        text: error instanceof Error ? `${error.message}; loading CPU fallback` : "WebGPU failed; loading CPU fallback",
+        text: error instanceof Error ? error.message : "Local AI failed to load",
         ready: false
       });
-      preloadCpuLlm(onStatus);
       enginePromise = null;
     });
 
   return enginePromise;
-}
-
-export function preloadCpuLlm(onStatus: (status: LocalLlmStatus) => void) {
-  if (cpuPipelinePromise) {
-    return cpuPipelinePromise;
-  }
-
-  onStatus({
-    text: "Loading CPU/WASM local model",
-    ready: false
-  });
-
-  cpuPipelinePromise = import("@huggingface/transformers")
-    .then(async (transformers) => {
-      const module = transformers as unknown as {
-        env?: { allowLocalModels?: boolean };
-        pipeline: (
-          task: "text2text-generation",
-          model: string,
-          options?: { progress_callback?: (progress: { status?: string; progress?: number; file?: string }) => void }
-        ) => Promise<{
-          (input: string, options: {
-            max_new_tokens: number;
-            temperature: number;
-          }): Promise<Array<{ generated_text?: string }> | { generated_text?: string }>;
-        }>;
-      };
-
-      if (module.env) {
-        module.env.allowLocalModels = false;
-      }
-
-      return module.pipeline("text2text-generation", DEFAULT_CPU_MODEL, {
-        progress_callback(progress) {
-          onStatus({
-            text: progress.file ? `Downloading ${progress.file}` : progress.status || "Loading CPU model",
-            progress: typeof progress.progress === "number" ? progress.progress / 100 : undefined,
-            ready: false
-          });
-        }
-      });
-    })
-    .then((pipeline) => {
-      onStatus({
-        text: "CPU local AI ready",
-        progress: 1,
-        ready: true
-      });
-      return pipeline;
-    })
-    .catch((error) => {
-      onStatus({
-        text: error instanceof Error ? error.message : "CPU local AI failed to load",
-        ready: false
-      });
-      cpuPipelinePromise = null;
-      throw error;
-    });
-
-  return cpuPipelinePromise;
 }
 
 export async function streamLocalLlm(
@@ -206,40 +141,12 @@ export async function streamLocalLlm(
   const maybeEngine = preloadLocalLlm(onStatus, model);
 
   if (!maybeEngine) {
-    const pipeline = await preloadCpuLlm(onStatus);
-    onStatus({ text: "Running CPU local inference", ready: true, progress: 1 });
-    const result = await pipeline(buildCpuPrompt(command), {
-      max_new_tokens: 1024,
-      temperature: 0.25
-    });
-    const first = Array.isArray(result) ? result[0] : result;
-    const output = first.generated_text?.trim();
-    if (!output) {
-      throw new Error("CPU local model did not return text.");
-    }
-    onChunk(output);
-    return output;
+    throw new Error("Local AI requires WebGPU. Use OpenRouter/BYOK for AI-generated output on this device.");
   }
 
   const engine = await maybeEngine.catch(async () => {
-    const pipeline = await preloadCpuLlm(onStatus);
-    onStatus({ text: "Running CPU local inference", ready: true, progress: 1 });
-    const result = await pipeline(buildCpuPrompt(command), {
-      max_new_tokens: 1024,
-      temperature: 0.25
-    });
-    const first = Array.isArray(result) ? result[0] : result;
-    const output = first.generated_text?.trim();
-    if (!output) {
-      throw new Error("CPU local model did not return text.");
-    }
-    onChunk(output);
-    return null;
+    throw new Error("Local AI failed to load. Use OpenRouter/BYOK for AI-generated output on this device.");
   });
-
-  if (!engine) {
-    return "";
-  }
 
   const streamed = await engine.chat.completions.create({
     messages: [

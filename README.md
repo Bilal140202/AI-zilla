@@ -7,7 +7,7 @@ AI-zilla is a unified AI command dashboard for routing work across model provide
 - Next.js App Router application
 - Dashboard-first interface with agent status, prompt library, workflow lanes, and command arena
 - Streaming command route at `/api/zilla-command`
-- Free local browser AI through WebLLM with background model preload
+- Free local browser AI through WebLLM with background model preload on WebGPU-capable devices
 - BYOK OpenRouter support for text tasks
 - Pollinations image URL generation for `@pollinations-img` requests
 - Extreme build-prompt system prompting with a copy-paste Markdown code block section
@@ -28,7 +28,7 @@ Open `http://localhost:3000`.
 - `@openrouter` or `@nyok`: text generation through OpenRouter-compatible chat completions
 - `@pollinations-img`: image generation through Pollinations image endpoint
 
-The app starts loading `Llama-3.2-1B-Instruct-q4f32_1-MLC` in the browser after launch. This requires a WebGPU-capable browser.
+The app starts loading `Llama-3.2-1B-Instruct-q4f32_1-MLC` in the browser after launch. This requires a WebGPU-capable browser. If WebGPU is unavailable, use OpenRouter/BYOK for real AI-generated text output.
 
 ## Environment
 

@@ -131,12 +131,15 @@ export function ZillaDashboard() {
 
     try {
       if (activeTag === "local") {
-        await streamLocalLlm(
+        const finalOutput = await streamLocalLlm(
           command.replace(/@(local|webllm)\b/gi, "").trim(),
           (chunk) => setOutput((current) => current + chunk),
           setLocalStatus,
           localModel
         );
+        if (finalOutput) {
+          setOutput(finalOutput);
+        }
         remember(command);
         return;
       }
@@ -455,7 +458,7 @@ export function ZillaDashboard() {
                 <div>
                   <h2 className="font-semibold">Zilla Arena</h2>
                   <p className="text-xs text-[var(--muted)]">
-                    Active: {activeTag === "local" ? "free local WebLLM" : activeTag}
+                    Active: {activeTag === "local" ? "free WebGPU WebLLM" : activeTag}
                   </p>
                 </div>
                 <button
