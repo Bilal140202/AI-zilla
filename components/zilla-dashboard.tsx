@@ -4,14 +4,21 @@ import { DEFAULT_LOCAL_MODEL, preloadLocalLlm, streamLocalLlm, type LocalLlmStat
 import { parseProviderTag } from "@/lib/zilla";
 import { useZillaStore } from "@/store/zilla-store";
 import {
+  Activity,
   Bot,
   Braces,
   CheckCircle2,
+  Code2,
   Copy,
+  Cpu,
+  GitCompare,
+  Home,
   Image,
   KeyRound,
   Loader2,
   Play,
+  Quote,
+  Rocket,
   Settings,
   Sparkles,
   Workflow
@@ -19,7 +26,7 @@ import {
 import type { ComponentType } from "react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-type View = "agents" | "prompts" | "workflows" | "settings";
+type View = "home" | "agents" | "prompts" | "workflows" | "settings";
 
 type ImageResponse = {
   type?: "image";
@@ -29,10 +36,27 @@ type ImageResponse = {
 };
 
 const navItems: Array<{ id: View; label: string; icon: ComponentType<{ className?: string }> }> = [
+  { id: "home", label: "Home", icon: Home },
   { id: "agents", label: "Agents", icon: Bot },
   { id: "prompts", label: "Prompt Library", icon: Braces },
   { id: "workflows", label: "Workflows", icon: Workflow },
   { id: "settings", label: "Settings", icon: Settings }
+];
+
+const reviewTrain = [
+  "The prompt came out cleaner than our sprint brief.",
+  "AI-zilla turned a rough idea into an executable spec.",
+  "No more one-line prompts that waste model credits.",
+  "The code block output dropped straight into our builder.",
+  "Local mode is enough for first drafts when keys are not ready."
+];
+
+const commandLines = [
+  "> boot ai-zilla --local",
+  "local model: warming cache",
+  "prompt kernel: extreme build mode",
+  "output: markdown + copy-paste master prompt",
+  "status: ready for builders"
 ];
 
 async function readTextStream(response: Response, onChunk: (chunk: string) => void) {
@@ -77,7 +101,7 @@ async function readTextStream(response: Response, onChunk: (chunk: string) => vo
 
 export function ZillaDashboard() {
   const { agents, prompts, recent, remember } = useZillaStore();
-  const [activeView, setActiveView] = useState<View>("agents");
+  const [activeView, setActiveView] = useState<View>("home");
   const [command, setCommand] = useState(prompts[0]);
   const [openRouterKey, setOpenRouterKey] = useState("");
   const [openRouterModel, setOpenRouterModel] = useState("openai/gpt-4.1-mini");
@@ -209,6 +233,114 @@ export function ZillaDashboard() {
         </aside>
 
         <section className="grid gap-5 p-5 lg:grid-rows-[auto_auto_1fr]">
+          {activeView === "home" ? (
+            <section className="grid gap-5">
+              <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+                <div className="relative overflow-hidden rounded border border-[var(--line)] bg-black p-5">
+                  <div className="absolute inset-x-0 top-0 h-px bg-[var(--acid)] opacity-70" />
+                  <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[var(--danger)]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-[var(--amber)]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-[var(--acid)]" />
+                    <span className="ml-2">ai-zilla/home.cmd</span>
+                  </div>
+                  <h2 className="mt-6 max-w-3xl text-4xl font-semibold leading-tight text-white md:text-6xl">
+                    Turn rough app ideas into build commands.
+                  </h2>
+                  <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--muted)]">
+                    AI-zilla converts basic prompts into complete app-building instructions with architecture, screens,
+                    API routes, edge cases, verification, and a copy-paste markdown master prompt.
+                  </p>
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <button
+                      className="inline-flex items-center gap-2 rounded bg-[var(--acid)] px-4 py-3 text-sm font-semibold text-black"
+                      onClick={() => setActiveView("agents")}
+                      type="button"
+                    >
+                      <Rocket className="h-4 w-4" />
+                      Open Command Deck
+                    </button>
+                    <button
+                      className="inline-flex items-center gap-2 rounded border border-[var(--line)] px-4 py-3 text-sm text-white hover:border-[var(--acid)]"
+                      onClick={() => setCommand("@local build a launch-ready SaaS dashboard for customer support insights")}
+                      type="button"
+                    >
+                      <Code2 className="h-4 w-4" />
+                      Load Example
+                    </button>
+                  </div>
+                </div>
+
+                <div className="rounded border border-[var(--line)] bg-[#050606] p-5 font-mono text-sm">
+                  <div className="flex items-center justify-between border-b border-[var(--line)] pb-3">
+                    <span className="text-[var(--acid)]">LIVE BOOT</span>
+                    <span className="text-[var(--muted)]">{localStatus.ready ? "LOCAL READY" : "LOADING"}</span>
+                  </div>
+                  <div className="mt-5 grid gap-3">
+                    {commandLines.map((line, index) => (
+                      <div className="flex gap-3" key={line}>
+                        <span className="text-[var(--muted)]">0{index + 1}</span>
+                        <span className={index === 0 ? "text-[var(--acid)]" : "text-[#d7f7d2]"}>{line}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-6 rounded border border-[rgba(57,255,20,0.28)] bg-[rgba(57,255,20,0.06)] p-3">
+                    <div className="flex items-center gap-2 text-[var(--acid)]">
+                      <Cpu className="h-4 w-4" />
+                      <span>{localStatus.text}</span>
+                    </div>
+                    {typeof localStatus.progress === "number" ? (
+                      <div className="mt-3 h-1.5 overflow-hidden rounded bg-[#20262a]">
+                        <div
+                          className="h-full bg-[var(--acid)] transition-all"
+                          style={{ width: `${Math.max(4, Math.round(localStatus.progress * 100))}%` }}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-3">
+                <div className="rounded border border-[var(--line)] bg-[var(--panel)] p-4">
+                  <Activity className="h-5 w-5 text-[var(--acid)]" />
+                  <h3 className="mt-3 font-semibold">Why It Exists</h3>
+                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                    Basic prompts leave model builders guessing. AI-zilla adds the missing context a coding agent needs
+                    to produce a real app instead of a vague prototype.
+                  </p>
+                </div>
+                <div className="rounded border border-[var(--line)] bg-[var(--panel)] p-4">
+                  <GitCompare className="h-5 w-5 text-[var(--amber)]" />
+                  <h3 className="mt-3 font-semibold">Basic vs Complete</h3>
+                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                    A basic prompt says what to build. A complete AI-zilla command specifies behavior, UX, architecture,
+                    provider flow, state, failures, tests, and the final copy block.
+                  </p>
+                </div>
+                <div className="rounded border border-[var(--line)] bg-[var(--panel)] p-4">
+                  <Quote className="h-5 w-5 text-[#a3e635]" />
+                  <h3 className="mt-3 font-semibold">Builder Ready</h3>
+                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                    Outputs are shaped for direct reuse in coding LLMs, with a dedicated markdown code block for the
+                    final master prompt.
+                  </p>
+                </div>
+              </div>
+
+              <div className="overflow-hidden rounded border border-[var(--line)] bg-black py-3">
+                <div className="review-track flex gap-8 whitespace-nowrap text-sm text-[#d7f7d2]">
+                  {[...reviewTrain, ...reviewTrain].map((review, index) => (
+                    <span className="inline-flex items-center gap-2" key={`${review}-${index}`}>
+                      <span className="text-[var(--acid)]">review:</span>
+                      {review}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </section>
+          ) : null}
+
           {activeView === "agents" ? (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {agents.map((agent) => (
