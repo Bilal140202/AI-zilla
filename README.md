@@ -1,15 +1,36 @@
-﻿# AI-zilla
+# AI-zilla
 
-Welcome to **AI-zilla** 🦖 — A monstrously powerful AI Toolkit and Agent Aggregator. 
+AI-zilla is a unified AI command dashboard for routing work across model providers, prompt presets, and image generation flows.
 
-## 🚀 Overview
-AI-zilla is designed to be the ultimate hub for AI operations, bringing together multiple models, prompt engineering tools, and autonomous agents under one roof. Whether you need text generation, image synthesis, or complex problem-solving pipelines, AI-zilla handles it all with monstrous efficiency.
+## What is built
 
-## 🛠 Features (Planned)
-- Unified Interface for Multiple LLMs
-- Agent Workflow Orchestration
-- Built-in Prompt Library
-- Real-time Analytics Dashboard
+- Next.js App Router application
+- Dashboard-first interface with agent status, prompt library, workflow lanes, and command arena
+- Streaming command route at `/api/zilla-command`
+- BYOK OpenRouter support for text tasks
+- Pollinations image URL generation for `@pollinations-img` requests
+- Provider errors are surfaced directly; no fake placeholder model output is returned
 
-## 📜 License
-This project is licensed under the MIT License.
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+## Command Tags
+
+- `@openrouter` or `@nyok`: text generation through OpenRouter-compatible chat completions
+- `@pollinations-img`: image generation through Pollinations image endpoint
+
+## Environment
+
+You can enter keys in the UI, or set server defaults:
+
+```bash
+OPENROUTER_API_KEY=
+OPENROUTER_MODEL=openai/gpt-4.1-mini
+POLLINATIONS_API_KEY=
+```

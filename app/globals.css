@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --bg: #0b0d0e;
+  --panel: #111417;
+  --panel-2: #171b1f;
+  --line: #2a3239;
+  --text: #eef4ef;
+  --muted: #8b9a93;
+  --acid: #39ff14;
+  --amber: #f6c350;
+  --violet: #7c3aed;
+  --danger: #fb7185;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    linear-gradient(90deg, rgba(57, 255, 20, 0.04) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(57, 255, 20, 0.035) 1px, transparent 1px),
+    var(--bg);
+  background-size: 38px 38px;
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  background: rgba(17, 20, 23, 0.92);
+}
+
+.chip {
+  border: 1px solid rgba(57, 255, 20, 0.3);
+  background: rgba(57, 255, 20, 0.08);
+  color: #b7ffad;
+}
+
+.terminal-scroll {
+  scrollbar-color: #43513f transparent;
+}

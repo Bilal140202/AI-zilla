@@ -8,6 +8,13 @@ Thumbs.db
 
 # Node
 node_modules/
+.next/
+out/
+dist/
+build/
+.env
+.env.local
+*.tsbuildinfo
 dist/
 build/
 .env
